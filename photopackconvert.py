@@ -15,8 +15,10 @@ import webbrowser
 
 pillow_heif.register_heif_opener()
 
+version = 'v0.4.0'
+
 """
-PhotopackConvert 0.3.1
+PhotopackConvert 0.4.0
 
 Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
@@ -26,7 +28,7 @@ Dallinbarker@gmail.com
 # init
 root = TkinterDnD.Tk()
 root.withdraw()
-root.title('PhotopackConvert 0.3.1')
+root.title(f'PhotopackConvert {version}')
 # define grid defaults
 root.grid_rowconfigure(1, weight=1, minsize=50)
 root.grid_rowconfigure(3, weight=1, minsize=50)
@@ -277,9 +279,9 @@ buttons = Frame(root)
 buttons.grid(row=12, column=0, columnspan=3, pady=5)
 Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
-Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits","""
+Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits",f"""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: 0.3.1 5/22/23
+Ver: {version} 5/22/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
 Packaged with Pyinstaller
 Contact: Dallinbarker@gmail.com with any questions or concerns!
