@@ -10,6 +10,12 @@ Email Dallinbarker@gmail.com with any questions or concerns!
 
 # Changelog
 
+## 0.3.0
+Added button that links to the changelog.
+
+### 0.3.1
+totally forgot to change the version and date in the code. oops (－‸ლ)
+
 ## 0.2.0
 minor changes. visual improvements
 (yes i know it doesnt fit Semantic Versioning. deal with it)
