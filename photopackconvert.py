@@ -145,7 +145,7 @@ numFilesVal = Label(root, text='##')
 numFilesVal.grid(row=8, column=1, padx=10, pady=5,sticky='w')
 status = Label(root, text='Status:')
 status.grid(row=9, column=0, padx=10, pady=5,sticky='e')
-statusVal = Label(root, text='Inactive', fg='orange', width=30)
+statusVal = Label(root, text='Inactive', fg='orange', width=50)
 statusVal.grid(row=9, column=1, padx=0, pady=0, sticky="w")
 
 def setStatus(text,fg="blue",statusVal=statusVal):
@@ -158,7 +158,6 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     other=[]
     pillow_heif.register_heif_opener()
     ZipPath = ZipPath.strip('"')
-    startFilesVal.config(text=len(os.listdir(inpath)))
     root.update_idletasks()
     times = [time.perf_counter()]
     for filename in os.listdir(inpath):
@@ -173,6 +172,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     with ZipFile(ZipPath,"r") as zip_ref:
         zip_ref.extractall(inpath)
     times.append(time.perf_counter())
+    startFilesVal.config(text=len(os.listdir(inpath)))
     print("Extracted")
     print(f"{times[0]-times[1]:0.4f}s")
     # iterate over files in
@@ -181,6 +181,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     numPhotos = len(os.listdir(inpath))
     print(f"Num Photos: {numPhotos}")
     delay = []
+    names = []
     for filename in os.listdir(inpath):
         f = os.path.join(inpath, filename)
         # checking if it is a file
@@ -193,6 +194,11 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 setStatus(text=f"Converting: {filename}",fg='blue')
             print("name: ",filename)
             title = '.'.join(brekup)
+            print(f"title: {title}")
+            if title in names:
+                other.append(f'dupe;{title}')
+            else:
+                names.append(title)
             if extntion.upper() == 'PDF':
                 other.append(f'pdf')
                 print('PDF, Skip')
@@ -218,7 +224,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     end = time.perf_counter()
     endNum = len(os.listdir(outpath))
     duration = end-times[0]
-    return (end,endNum,duration,times,other)
+    return (end,endNum,duration,times,other,names)
 
 def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalTimeVal):
     setStatus(text="Converting: Starting",fg='blue')
@@ -226,17 +232,35 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     outfile = outfilepath.get(0,0)[0]
     storefile = storefilepath.get(0,0)[0]
     data = photopackConvert(Zipfile,storefile,outfile)
+    print(data[4])
+    print(data[5])
     totalTimeVal.config(text=data[2])
     numFilesVal.config(text=data[1])
+    statStr = "Done"
+    statClr = 'green'
+    err = False
     if data[1]<30:
-        if 'pdf' in data[4]:
-            setStatus(text=f"Done. WARNING, Less than 30 files ({data[1]}), PDF in pack.",fg='red')
-        else:
-            setStatus(text=f"Done. WARNING, Less than 30 files ({data[1]})",fg='red')
-    elif 'pdf' in data[4]:
-        setStatus(text=f"Done. WARNING, PDF in pack, but more than 30 files  ({data[1]})",fg='orange')
-    else:
-        setStatus(text=f"Done. files converted",fg='green')
+        statStr += f", Less than 30 files ({data[1]})"
+        statClr = 'red'
+        err = True
+    if any("dupe" in s for s in data[4]):
+        dupes = [s for s in data[4] if "dupe" in s]
+        print(dupes)
+        sting = "Files found with same name, only one photo kept"
+        statStr += ', Duplicate files Found'
+        if not statClr == 'red': statClr = 'orange'
+        for i in dupes:
+            fname = i.split(';')[1]
+            sting += f"\n {fname}"
+        messagebox.showinfo("Duplicate Photos",sting)
+        err = True
+    if 'pdf' in data[4]:
+        statStr += f", PDF in pack, but more than 30 files  ({data[1]})"
+        if not statClr == 'red': statClr = 'orange'
+        err = True
+    if not err:
+        statStr += ', files converted'
+    setStatus(text=statStr,fg=statClr)
 
 # convert button
 ConvertButton = Frame(root)
@@ -253,13 +277,6 @@ buttons = Frame(root)
 buttons.grid(row=12, column=0, columnspan=3, pady=5)
 Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
-def messageWindow():
-    win = Toplevel()
-    win.title('warning')
-    message = "This will delete stuff"
-    Label(win, text=message).pack()
-    Button(win, text='Delete', command=win.destroy).pack()
-
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits","""
 Developed by Dallin Barker for Bright Planet Solar
 Ver: 0.3.1 5/22/23
