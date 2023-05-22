@@ -260,6 +260,7 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
         statStr += f", PDF in pack, but more than 30 files  ({data[1]})"
         if not statClr == 'red': statClr = 'orange'
         err = True
+        messagebox.showinfo("PDF Found","PDF file found in pack")
     if not err:
         statStr += ', files converted'
     setStatus(text=statStr,fg=statClr)
