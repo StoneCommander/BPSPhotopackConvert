@@ -4,7 +4,6 @@ import os
 import pillow_heif
 import shutil
 import time
-import os
 import platform
 from tkinterdnd2 import *
 from tkinter import *
@@ -12,13 +11,12 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog as fd
 from tkinter import messagebox
-import tkdnd
 import webbrowser
 
 pillow_heif.register_heif_opener()
 
 """
-PhotopackConvert 0.2.0
+PhotopackConvert 0.3.1
 
 Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
@@ -28,7 +26,7 @@ Dallinbarker@gmail.com
 # init
 root = TkinterDnD.Tk()
 root.withdraw()
-root.title('PhotopackConvert 0.2.0')
+root.title('PhotopackConvert 0.3.1')
 # define grid defaults
 root.grid_rowconfigure(1, weight=1, minsize=50)
 root.grid_rowconfigure(3, weight=1, minsize=50)
@@ -264,7 +262,7 @@ def messageWindow():
 
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits","""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: 0.3.0 5/3/23
+Ver: 0.3.1 5/22/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
 Packaged with Pyinstaller
 Contact: Dallinbarker@gmail.com with any questions or concerns!
