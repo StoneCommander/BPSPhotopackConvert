@@ -181,8 +181,13 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     numPhotos = len(os.listdir(inpath))
     print(f"Num Photos: {numPhotos}")
     delay = []
+    names = []
     for filename in os.listdir(inpath):
         f = os.path.join(inpath, filename)
+        if filename in names:
+            other.append(f'dupe;{filename}')
+        else:
+            names.append(filename)
         # checking if it is a file
         if os.path.isfile(f):
             brekup = filename.split('.')
