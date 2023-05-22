@@ -233,15 +233,27 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     data = photopackConvert(Zipfile,storefile,outfile)
     totalTimeVal.config(text=data[2])
     numFilesVal.config(text=data[1])
+    statStr = "Done"
+    statClr = 'green'
     if data[1]<30:
-        if 'pdf' in data[4]:
-            setStatus(text=f"Done. WARNING, Less than 30 files ({data[1]}), PDF in pack.",fg='red')
-        else:
-            setStatus(text=f"Done. WARNING, Less than 30 files ({data[1]})",fg='red')
+        statStr += f", Less than 30 files ({data[1]})"
+        statClr = 'red'
+    if any("dupe" in s for s in data[4]):
+        dupes = [s for s in data[4] if "dupe" in s]
+        print(dupes)
+        sting = "Files found with same name, only one photo kept"
+        statStr += ', Duplicate files Found'
+        if not statClr == 'red': statClr = 'orange'
+        for i in dupes:
+            fname = dupes.split(';')[1]
+            sting += f"\n {fname}"
+        messagebox.showinfo("Duplicate Photos",sting)
     elif 'pdf' in data[4]:
-        setStatus(text=f"Done. WARNING, PDF in pack, but more than 30 files  ({data[1]})",fg='orange')
+        statStr += f", PDF in pack, but more than 30 files  ({data[1]})"
+        if not statClr == 'red': statClr = 'orange'
     else:
-        setStatus(text=f"Done. files converted",fg='green')
+        statStr += ', files converted'
+    setStatus(text=statStr,fg=statClr)
 
 # convert button
 ConvertButton = Frame(root)
@@ -258,13 +270,6 @@ buttons = Frame(root)
 buttons.grid(row=12, column=0, columnspan=3, pady=5)
 Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
-def messageWindow():
-    win = Toplevel()
-    win.title('warning')
-    message = "This will delete stuff"
-    Label(win, text=message).pack()
-    Button(win, text='Delete', command=win.destroy).pack()
-
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits","""
 Developed by Dallin Barker for Bright Planet Solar
 Ver: 0.3.1 5/22/23
