@@ -13,6 +13,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog as fd
 from tkinter import messagebox
 import tkdnd
+import webbrowser
 
 pillow_heif.register_heif_opener()
 
@@ -250,19 +251,25 @@ divide = ttk.Separator(root, orient='horizontal').grid(row=10, column=0, columns
 Cred = Label(root, text='Developed for BPS by Dallin Barker', fg='orange')
 Cred.grid(row=11, column=0, columnspan=3, padx=10, pady=5,sticky='n')
 # Quit button
-QuitButton = Frame(root)
-QuitButton.grid(row=12, column=0, columnspan=3, pady=5)
-Button(QuitButton, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
+buttons = Frame(root)
+buttons.grid(row=12, column=0, columnspan=3, pady=5)
+Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
-CredButton = Frame(root)
-CredButton.grid(row=12, column=1, sticky='w', columnspan=3, pady=5)
-Button(QuitButton, text='Credits', command= lambda: messagebox.showinfo("Credits","""
+def messageWindow():
+    win = Toplevel()
+    win.title('warning')
+    message = "This will delete stuff"
+    Label(win, text=message).pack()
+    Button(win, text='Delete', command=win.destroy).pack()
+
+Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits","""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: 0.1.0 5/3/23
+Ver: 0.3.0 5/3/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
 Packaged with Pyinstaller
 Contact: Dallinbarker@gmail.com with any questions or concerns!
 """), fg='blue').pack(side=LEFT, padx=5)
+Button(buttons, text='Changelog', command= lambda: webbrowser.open_new(r"https://github.com/StoneCommander/BPSPhotopackConvert/tree/main#changelog") , fg='blue').pack(side=LEFT, padx=5)
 
 # register file drops, and set drop action
 filedrop.drop_target_register(DND_FILES)
