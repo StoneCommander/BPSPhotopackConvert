@@ -145,7 +145,7 @@ numFilesVal = Label(root, text='##')
 numFilesVal.grid(row=8, column=1, padx=10, pady=5,sticky='w')
 status = Label(root, text='Status:')
 status.grid(row=9, column=0, padx=10, pady=5,sticky='e')
-statusVal = Label(root, text='Inactive', fg='orange', width=30)
+statusVal = Label(root, text='Inactive', fg='orange', width=50)
 statusVal.grid(row=9, column=1, padx=0, pady=0, sticky="w")
 
 def setStatus(text,fg="blue",statusVal=statusVal):
@@ -158,7 +158,6 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     other=[]
     pillow_heif.register_heif_opener()
     ZipPath = ZipPath.strip('"')
-    startFilesVal.config(text=len(os.listdir(inpath)))
     root.update_idletasks()
     times = [time.perf_counter()]
     for filename in os.listdir(inpath):
@@ -173,6 +172,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     with ZipFile(ZipPath,"r") as zip_ref:
         zip_ref.extractall(inpath)
     times.append(time.perf_counter())
+    startFilesVal.config(text=len(os.listdir(inpath)))
     print("Extracted")
     print(f"{times[0]-times[1]:0.4f}s")
     # iterate over files in
@@ -184,10 +184,6 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     names = []
     for filename in os.listdir(inpath):
         f = os.path.join(inpath, filename)
-        if filename in names:
-            other.append(f'dupe;{filename}')
-        else:
-            names.append(filename)
         # checking if it is a file
         if os.path.isfile(f):
             brekup = filename.split('.')
@@ -198,6 +194,11 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 setStatus(text=f"Converting: {filename}",fg='blue')
             print("name: ",filename)
             title = '.'.join(brekup)
+            print(f"title: {title}")
+            if title in names:
+                other.append(f'dupe;{title}')
+            else:
+                names.append(title)
             if extntion.upper() == 'PDF':
                 other.append(f'pdf')
                 print('PDF, Skip')
@@ -223,7 +224,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     end = time.perf_counter()
     endNum = len(os.listdir(outpath))
     duration = end-times[0]
-    return (end,endNum,duration,times,other)
+    return (end,endNum,duration,times,other,names)
 
 def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalTimeVal):
     setStatus(text="Converting: Starting",fg='blue')
@@ -231,13 +232,17 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     outfile = outfilepath.get(0,0)[0]
     storefile = storefilepath.get(0,0)[0]
     data = photopackConvert(Zipfile,storefile,outfile)
+    print(data[4])
+    print(data[5])
     totalTimeVal.config(text=data[2])
     numFilesVal.config(text=data[1])
     statStr = "Done"
     statClr = 'green'
+    err = False
     if data[1]<30:
         statStr += f", Less than 30 files ({data[1]})"
         statClr = 'red'
+        err = True
     if any("dupe" in s for s in data[4]):
         dupes = [s for s in data[4] if "dupe" in s]
         print(dupes)
@@ -245,13 +250,15 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
         statStr += ', Duplicate files Found'
         if not statClr == 'red': statClr = 'orange'
         for i in dupes:
-            fname = dupes.split(';')[1]
+            fname = i.split(';')[1]
             sting += f"\n {fname}"
         messagebox.showinfo("Duplicate Photos",sting)
-    elif 'pdf' in data[4]:
+        err = True
+    if 'pdf' in data[4]:
         statStr += f", PDF in pack, but more than 30 files  ({data[1]})"
         if not statClr == 'red': statClr = 'orange'
-    else:
+        err = True
+    if not err:
         statStr += ', files converted'
     setStatus(text=statStr,fg=statClr)
 
