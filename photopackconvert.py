@@ -15,10 +15,10 @@ import webbrowser
 
 pillow_heif.register_heif_opener()
 
-version = 'v0.4.0'
+version = 'v0.4.1'
 
 """
-PhotopackConvert 0.4.0
+PhotopackConvert 0.4.1
 
 Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
@@ -207,15 +207,24 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 continue
             img = PIL.Image.open(f)
             size = img.size
+            space = os.stat(f).st_size
             half = (round(size[0]/2),round(size[1]/2))
             print("Original size: ",size)
-            img.thumbnail(half)
+            print("Original space: ",space)
+            if int(space) >= 300000: 
+                print('resize')
+                img.thumbnail(half)
+            else:
+                print('dont resize')
             nsize = img.size
             print("New size: ",nsize)
             if extntion.upper() == 'PNG':
                 img.save(outpath+"/"+title+'.png')
+                nspace = os.stat(outpath+"/"+title+'.png')
             else:
                 img.save(outpath+"/"+title+'.jpg')
+                nspace = os.stat(outpath+"/"+title+'.jpg').st_size
+            print("New space: ",nspace)
             now = time.perf_counter()
             print(f"image {i}")
             print(now-times[0])
@@ -282,9 +291,9 @@ Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5
 # Creddits button
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits",f"""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: {version} 5/22/23
+Ver: {version} 5/25/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
-Packaged with Pyinstaller
+Packaged with Pyinstaller 
 Contact: Dallinbarker@gmail.com with any questions or concerns!
 """), fg='blue').pack(side=LEFT, padx=5)
 Button(buttons, text='Changelog', command= lambda: webbrowser.open_new(r"https://github.com/StoneCommander/BPSPhotopackConvert/tree/main#changelog") , fg='blue').pack(side=LEFT, padx=5)
