@@ -12,6 +12,8 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog as fd
 from tkinter import messagebox
 import webbrowser
+import json
+import default
 
 pillow_heif.register_heif_opener()
 
@@ -31,14 +33,32 @@ if not os.path.exists(path):
     print('path not found, creating')
     os.makedirs(path)
     print(os.path.exists(path))
-    os.startfile(path)
+
+    result = messagebox.askquestion('Create Output folder', 'would you like to create and select a output folder on the desktop?')
+
+
+
+    ddat = default.data
+    
+    if result == 'yes':
+        os.makedirs(f"{os.path.expanduser('~')}\Desktop\output")
+        ddat["fileLocations"]["Output"] = f"{os.path.expanduser('~')}\Desktop\output"
+        os.makedirs(f"{os.path.expanduser('~')}\PhotopackConverData\Store")
+        ddat["fileLocations"]["Storage"] = f"{os.path.expanduser('~')}\PhotopackConverData\Store"
+
+    f = open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w')
+    json.dump(ddat, f)
+
+
 else:
     print('path found, files:')
-    os.startfile(path)
     for i in os.listdir(path):
         print(i)
 
 # init
+
+preferences = open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json")
+
 root = TkinterDnD.Tk()
 root.withdraw()
 root.title(f'PhotopackConvert {version}')
