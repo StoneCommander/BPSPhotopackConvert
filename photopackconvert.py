@@ -46,8 +46,8 @@ if not os.path.exists(path):
         os.makedirs(f"{os.path.expanduser('~')}\PhotopackConverData\Store")
         ddat["fileLocations"]["Storage"] = f"{os.path.expanduser('~')}\PhotopackConverData\Store"
 
-    f = open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w')
-    json.dump(ddat, f)
+    with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
+        json.dump(ddat, f)
 
 
 else:
@@ -57,7 +57,13 @@ else:
 
 # init
 
-preferences = open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json")
+preferences = None
+with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json") as pref:
+    preferences = json.load(pref)
+
+
+
+print(preferences)
 
 root = TkinterDnD.Tk()
 root.withdraw()
@@ -82,11 +88,12 @@ filedrop.insert('end', 'Drag Zip file to extract')
 # Right Output File path box
 outfilepath = Listbox(root, name='outputFileSet', selectmode='extended', width=1, height=1)
 outfilepath.grid(row=1, column=1, padx=5, pady=5, sticky='news')
-outfilepath.insert('end', 'Drag or select Output folder')
+if preferences["fileLocations"]["Output"] == "Unset": outfilepath.insert('end', 'Drag or select Output folder')
+else: outfilepath.insert('end', preferences["fileLocations"]["Output"])
 # Right Storage File path box
 storefilepath = Listbox(root, name='storeFileSet', selectmode='extended', width=1, height=1)
 storefilepath.grid(row=3, column=1, padx=5, pady=5, sticky='ewsn')
-storefilepath.insert('end', 'Drag or select Storage folder')
+storefilepath.insert('end', preferences["fileLocations"]["Storage"])
 
 def returnContent():
     print(filedrop.get(0,0))
@@ -146,6 +153,7 @@ def drop(event):
                     print('Dropped file: "%s"' % f)
                     outfilepath.delete(0,99)
                     outfilepath.insert('end', f)
+                    preferences["fileLocations"]["Output"] = str(f)
                 else:
                     print('Not dropping file "%s": file does not exist.' % f)
         elif event.widget == storefilepath:
@@ -156,10 +164,15 @@ def drop(event):
                     print('Dropped file: "%s"' % f)
                     storefilepath.delete(0,99)
                     storefilepath.insert('end', f)
+                    preferences["fileLocations"]["Storage"] = str(f)
                 else:
                     print('Not dropping file "%s": file does not exist.' % f)
         else:
             print('Error: reported event.widget not known')
+    
+
+    with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
+        json.dump(preferences, f)
     return event.action
 
 
