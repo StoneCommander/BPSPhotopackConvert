@@ -12,41 +12,23 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog as fd
 from tkinter import messagebox
 import webbrowser
-import requests
+
 pillow_heif.register_heif_opener()
 
 version = 'v0.4.1'
 
 """
-PhotopackConvert 0.3.1
+PhotopackConvert 0.4.1
 
 Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
 
 """
-response = requests.get("https://api.github.com/repos/StoneCommander/BPSPhotopackConvert/releases/latest")
-name = response.json()['name']
-
-latestVers = name.split(' ')[1]
-print(name)
-print(latestVers)
-
-promtVers = False
-
-if version == latestVers:
-    print('You have the latest version!')
-elif 'Beta' in version:
-    print('you are using a beta!')
-else:
-    print('you are using an old version!')
-    promtVers = True
-
-
 
 # init
 root = TkinterDnD.Tk()
 root.withdraw()
-root.title('PhotopackConvert 0.3.1')
+root.title(f'PhotopackConvert {version}')
 # define grid defaults
 root.grid_rowconfigure(1, weight=1, minsize=50)
 root.grid_rowconfigure(3, weight=1, minsize=50)
@@ -165,7 +147,7 @@ numFilesVal = Label(root, text='##')
 numFilesVal.grid(row=8, column=1, padx=10, pady=5,sticky='w')
 status = Label(root, text='Status:')
 status.grid(row=9, column=0, padx=10, pady=5,sticky='e')
-statusVal = Label(root, text='Inactive', fg='orange', width=30)
+statusVal = Label(root, text='Inactive', fg='orange', width=50)
 statusVal.grid(row=9, column=1, padx=0, pady=0, sticky="w")
 
 def setStatus(text,fg="blue",statusVal=statusVal):
@@ -178,7 +160,6 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     other=[]
     pillow_heif.register_heif_opener()
     ZipPath = ZipPath.strip('"')
-    startFilesVal.config(text=len(os.listdir(inpath)))
     root.update_idletasks()
     times = [time.perf_counter()]
     for filename in os.listdir(inpath):
@@ -193,6 +174,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     with ZipFile(ZipPath,"r") as zip_ref:
         zip_ref.extractall(inpath)
     times.append(time.perf_counter())
+    startFilesVal.config(text=len(os.listdir(inpath)))
     print("Extracted")
     print(f"{times[0]-times[1]:0.4f}s")
     # iterate over files in
@@ -201,6 +183,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     numPhotos = len(os.listdir(inpath))
     print(f"Num Photos: {numPhotos}")
     delay = []
+    names = []
     for filename in os.listdir(inpath):
         f = os.path.join(inpath, filename)
         # checking if it is a file
@@ -213,21 +196,35 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 setStatus(text=f"Converting: {filename}",fg='blue')
             print("name: ",filename)
             title = '.'.join(brekup)
+            print(f"title: {title}")
+            if title in names:
+                other.append(f'dupe;{title}')
+            else:
+                names.append(title)
             if extntion.upper() == 'PDF':
                 other.append(f'pdf')
                 print('PDF, Skip')
                 continue
             img = PIL.Image.open(f)
             size = img.size
+            space = os.stat(f).st_size
             half = (round(size[0]/2),round(size[1]/2))
             print("Original size: ",size)
-            img.thumbnail(half)
+            print("Original space: ",space)
+            if int(space) >= 300000: 
+                print('resize')
+                img.thumbnail(half)
+            else:
+                print('dont resize')
             nsize = img.size
             print("New size: ",nsize)
             if extntion.upper() == 'PNG':
                 img.save(outpath+"/"+title+'.png')
+                nspace = os.stat(outpath+"/"+title+'.png')
             else:
                 img.save(outpath+"/"+title+'.jpg')
+                nspace = os.stat(outpath+"/"+title+'.jpg').st_size
+            print("New space: ",nspace)
             now = time.perf_counter()
             print(f"image {i}")
             print(now-times[0])
@@ -238,7 +235,7 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     end = time.perf_counter()
     endNum = len(os.listdir(outpath))
     duration = end-times[0]
-    return (end,endNum,duration,times,other)
+    return (end,endNum,duration,times,other,names)
 
 def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalTimeVal):
     setStatus(text="Converting: Starting",fg='blue')
@@ -246,17 +243,36 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     outfile = outfilepath.get(0,0)[0]
     storefile = storefilepath.get(0,0)[0]
     data = photopackConvert(Zipfile,storefile,outfile)
+    print(data[4])
+    print(data[5])
     totalTimeVal.config(text=data[2])
     numFilesVal.config(text=data[1])
+    statStr = "Done"
+    statClr = 'green'
+    err = False
     if data[1]<30:
-        if 'pdf' in data[4]:
-            setStatus(text=f"Done. WARNING, Less than 30 files ({data[1]}), PDF in pack.",fg='red')
-        else:
-            setStatus(text=f"Done. WARNING, Less than 30 files ({data[1]})",fg='red')
-    elif 'pdf' in data[4]:
-        setStatus(text=f"Done. WARNING, PDF in pack, but more than 30 files  ({data[1]})",fg='orange')
-    else:
-        setStatus(text=f"Done. files converted",fg='green')
+        statStr += f", Less than 30 files ({data[1]})"
+        statClr = 'red'
+        err = True
+    if any("dupe" in s for s in data[4]):
+        dupes = [s for s in data[4] if "dupe" in s]
+        print(dupes)
+        sting = "Files found with same name, only one photo kept"
+        statStr += ', Duplicate files Found'
+        if not statClr == 'red': statClr = 'orange'
+        for i in dupes:
+            fname = i.split(';')[1]
+            sting += f"\n {fname}"
+        messagebox.showinfo("Duplicate Photos",sting)
+        err = True
+    if 'pdf' in data[4]:
+        statStr += f", PDF in pack, but more than 30 files  ({data[1]})"
+        if not statClr == 'red': statClr = 'orange'
+        err = True
+        messagebox.showinfo("PDF Found","PDF file found in pack")
+    if not err:
+        statStr += ', files converted'
+    setStatus(text=statStr,fg=statClr)
 
 # convert button
 ConvertButton = Frame(root)
@@ -273,18 +289,11 @@ buttons = Frame(root)
 buttons.grid(row=12, column=0, columnspan=3, pady=5)
 Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
-def messageWindow():
-    win = Toplevel()
-    win.title('warning')
-    message = "This will delete stuff"
-    Label(win, text=message).pack()
-    Button(win, text='Delete', command=win.destroy).pack()
-
-Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits","""
+Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits",f"""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: 0.3.1 5/22/23
+Ver: {version} 5/25/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
-Packaged with Pyinstaller
+Packaged with Pyinstaller 
 Contact: Dallinbarker@gmail.com with any questions or concerns!
 """), fg='blue').pack(side=LEFT, padx=5)
 Button(buttons, text='Changelog', command= lambda: webbrowser.open_new(r"https://github.com/StoneCommander/BPSPhotopackConvert/tree/main#changelog") , fg='blue').pack(side=LEFT, padx=5)
@@ -297,12 +306,6 @@ outfilepath.dnd_bind('<<Drop>>', drop)
 storefilepath.drop_target_register(DND_FILES)
 storefilepath.dnd_bind('<<Drop>>', drop)
 
-if promtVers:
-    messagebox.showinfo("New Version!","""
-    There is a new version of PhotopackConvert out!
-    close this window, click the changelog button, scroll up and find Releases on the right
-    click on the latest version, then click again on "photopackconvert.exe" to download!
-""")
 
 
 root.update_idletasks()
