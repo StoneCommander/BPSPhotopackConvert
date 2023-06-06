@@ -7,5 +7,10 @@ data = {
         "Output":"Unset",
         "Storage":"X"
     },
-    "fileVersion":1
+    "fileVersion":2,
+    'debug':True
+}
+
+newData2 = {
+    'debug':False
 }

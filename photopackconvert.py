@@ -61,6 +61,8 @@ preferences = None
 with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json") as pref:
     preferences = json.load(pref)
 
+debug = preferences["debug"]
+print(debug)
 
 
 print(preferences)
