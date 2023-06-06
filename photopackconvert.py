@@ -12,7 +12,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog as fd
 from tkinter import messagebox
 import webbrowser
-import requests
+
 pillow_heif.register_heif_opener()
 
 version = 'v0.4.1'
@@ -24,24 +24,6 @@ Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
 
 """
-response = requests.get("https://api.github.com/repos/StoneCommander/BPSPhotopackConvert/releases/latest")
-name = response.json()['name']
-
-latestVers = name.split(' ')[1]
-print(name)
-print(latestVers)
-
-promtVers = False
-
-if version == latestVers:
-    print('You have the latest version!')
-elif 'Beta' in version:
-    print('you are using a beta!')
-else:
-    print('you are using an old version!')
-    promtVers = True
-
-
 
 # init
 root = TkinterDnD.Tk()
@@ -324,12 +306,6 @@ outfilepath.dnd_bind('<<Drop>>', drop)
 storefilepath.drop_target_register(DND_FILES)
 storefilepath.dnd_bind('<<Drop>>', drop)
 
-if promtVers:
-    messagebox.showinfo("New Version!","""
-    There is a new version of PhotopackConvert out!
-    close this window, click the changelog button, scroll up and find Releases on the right
-    click on the latest version, then click again on "photopackconvert.exe" to download!
-""")
 
 
 root.update_idletasks()
