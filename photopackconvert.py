@@ -25,6 +25,19 @@ Dallinbarker@gmail.com
 
 """
 
+path = f"{os.path.expanduser('~')}\PhotopackConverData"
+print(path)
+if not os.path.exists(path):
+    print('path not found, creating')
+    os.makedirs(path)
+    print(os.path.exists(path))
+    os.startfile(path)
+else:
+    print('path found, files:')
+    os.startfile(path)
+    for i in os.listdir(path):
+        print(i)
+
 # init
 root = TkinterDnD.Tk()
 root.withdraw()
