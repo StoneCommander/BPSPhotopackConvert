@@ -15,7 +15,7 @@ import webbrowser
 import requests
 pillow_heif.register_heif_opener()
 
-version = 'v0.3.1'
+version = 'v0.4.1'
 
 """
 PhotopackConvert 0.3.1
