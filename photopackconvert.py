@@ -15,10 +15,10 @@ import webbrowser
 
 pillow_heif.register_heif_opener()
 
-version = 'v0.4.1'
+version = 'v0.4.2'
 
 """
-PhotopackConvert 0.4.1
+PhotopackConvert v0.4.2
 
 Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
@@ -291,7 +291,7 @@ Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5
 # Creddits button
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits",f"""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: {version} 5/25/23
+Ver: {version} 6/6/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
 Packaged with Pyinstaller 
 Contact: Dallinbarker@gmail.com with any questions or concerns!
