@@ -43,8 +43,8 @@ if not os.path.exists(path):
     if result == 'yes':
         os.makedirs(f"{os.path.expanduser('~')}\Desktop\output")
         ddat["fileLocations"]["Output"] = f"{os.path.expanduser('~')}\Desktop\output"
-        os.makedirs(f"{os.path.expanduser('~')}\PhotopackConverData\Store")
-        ddat["fileLocations"]["Storage"] = f"{os.path.expanduser('~')}\PhotopackConverData\Store"
+    os.makedirs(f"{os.path.expanduser('~')}\PhotopackConverData\Store")
+    ddat["fileLocations"]["Storage"] = f"{os.path.expanduser('~')}\PhotopackConverData\Store"
 
     with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
         json.dump(ddat, f)
@@ -60,6 +60,19 @@ else:
 preferences = None
 with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json") as pref:
     preferences = json.load(pref)
+
+if preferences["fileVersion"] != default.data["fileVersion"]:
+    print(preferences)
+    for i in range(preferences["fileVersion"]+1,default.data["fileVersion"]+1):
+        print(i)
+        print(default.newData[i])
+        preferences.update(default.newData[i])
+    print(preferences)
+    preferences["fileVersion"] = default.data["fileVersion"]
+
+
+with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
+    json.dump(preferences, f)
 
 debug = preferences["debug"]
 print(debug)

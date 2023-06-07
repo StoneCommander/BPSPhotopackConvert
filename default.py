@@ -8,9 +8,11 @@ data = {
         "Storage":"X"
     },
     "fileVersion":2,
-    'debug':True
+    'debug':False
 }
 
-newData2 = {
-    'debug':False
+newData = {
+    2:{
+        'debug':False
+    }
 }
