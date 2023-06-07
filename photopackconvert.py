@@ -94,8 +94,13 @@ Label(root, text='Drop Photo pack Zip File').grid(
 # right label
 Label(root, text='Drop Output folder here').grid(
                     row=0, column=1, padx=10, pady=5, columnspan=2)
-Label(root, text='drop storage folder here').grid(
-                    row=2, column=1, padx=10, pady=5, columnspan=2)
+
+if debug:
+    Label(root, text='drop storage folder here').grid(
+                        row=2, column=1, padx=10, pady=5, columnspan=2)
+else:
+    Label(root, text='storage folder removed!').grid(
+                        row=2, column=1, padx=10, pady=5, columnspan=2)
 # Left file drop box
 filedrop = Listbox(root, name='fileDropbox', selectmode='extended', width=1, height=1)
 filedrop.grid(row=1, column=0, padx=5, pady=5, sticky='news',rowspan=3)
@@ -106,9 +111,11 @@ outfilepath.grid(row=1, column=1, padx=5, pady=5, sticky='news')
 if preferences["fileLocations"]["Output"] == "Unset": outfilepath.insert('end', 'Drag or select Output folder')
 else: outfilepath.insert('end', preferences["fileLocations"]["Output"])
 # Right Storage File path box
-storefilepath = Listbox(root, name='storeFileSet', selectmode='extended', width=1, height=1)
-storefilepath.grid(row=3, column=1, padx=5, pady=5, sticky='ewsn')
-storefilepath.insert('end', preferences["fileLocations"]["Storage"])
+
+if debug:
+    storefilepath = Listbox(root, name='storeFileSet', selectmode='extended', width=1, height=1)
+    storefilepath.grid(row=3, column=1, padx=5, pady=5, sticky='ewsn')
+    storefilepath.insert('end', preferences["fileLocations"]["Storage"])
 
 def returnContent():
     print(filedrop.get(0,0))
@@ -130,9 +137,11 @@ outfileselect = Frame(root)
 outfileselect.grid(row=1, column=2, columnspan=2, pady=5, sticky='')
 Button(outfileselect, text='...', command=lambda: selectFile(outfilepath), width=5).pack(side=TOP, padx=0)
 # storefileselect button
-storefileselect = Frame(root)
-storefileselect.grid(row=3, column=2, columnspan=2, pady=5, sticky='')
-Button(storefileselect, text='...', command=lambda: selectFile(storefilepath), width=5).pack(side=TOP, padx=0)
+
+if debug:
+    storefileselect = Frame(root)
+    storefileselect.grid(row=3, column=2, columnspan=2, pady=5, sticky='')
+    Button(storefileselect, text='...', command=lambda: selectFile(storefilepath), width=5).pack(side=TOP, padx=0)
 
 
 
@@ -364,8 +373,9 @@ filedrop.drop_target_register(DND_FILES)
 filedrop.dnd_bind('<<Drop>>', drop)
 outfilepath.drop_target_register(DND_FILES)
 outfilepath.dnd_bind('<<Drop>>', drop)
-storefilepath.drop_target_register(DND_FILES)
-storefilepath.dnd_bind('<<Drop>>', drop)
+if debug:
+    storefilepath.drop_target_register(DND_FILES)
+    storefilepath.dnd_bind('<<Drop>>', drop)
 
 
 
