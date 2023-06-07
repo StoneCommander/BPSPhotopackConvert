@@ -311,7 +311,10 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     setStatus(text="Converting: Starting",fg='blue')
     Zipfile = filedrop.get(0,0)[0]
     outfile = outfilepath.get(0,0)[0]
-    storefile = storefilepath.get(0,0)[0]
+    if debug:
+        storefile = storefilepath.get(0,0)[0]
+    else:
+        storefile = preferences["fileLocations"]["Storage"]
     data = photopackConvert(Zipfile,storefile,outfile)
     print(data[4])
     print(data[5])
