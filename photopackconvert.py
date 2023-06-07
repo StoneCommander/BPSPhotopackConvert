@@ -373,9 +373,17 @@ filedrop.drop_target_register(DND_FILES)
 filedrop.dnd_bind('<<Drop>>', drop)
 outfilepath.drop_target_register(DND_FILES)
 outfilepath.dnd_bind('<<Drop>>', drop)
+def Oclick(event):
+    path = outfilepath.get(0,0)[0]
+    os.startfile(path)
+outfilepath.bind('<Double-Button-1>',Oclick)
+def Sclick(event):
+    path = storefilepath.get(0,0)[0]
+    os.startfile(path)
 if debug:
     storefilepath.drop_target_register(DND_FILES)
     storefilepath.dnd_bind('<<Drop>>', drop)
+    storefilepath.bind('<Double-Button-1>',Sclick)
 
 
 
