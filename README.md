@@ -76,10 +76,14 @@ if you get this error, it should tell you the filename that has a duplicate, and
 Added double click on folder.  
 double click on the output or storage folder drop box to open the selected folder.
 
+**Full Changelog**: [0.4.1...0.4.2](https://github.com/StoneCommander/BPSPhotopackConvert/compare/0.4.1...0.4.2)
+
 ## 0.4.1, 5/25/23
 
 ### Improvements:
 added photo size check, wont downsize photos smaller than 300KB
+
+**Full Changelog**: [0.4.0...0.4.1](https://github.com/StoneCommander/BPSPhotopackConvert/compare/0.4.0...0.4.1)
 
 ## 0.4.0, 5/22/23
 
@@ -93,11 +97,17 @@ will return an error when detected
 ### Bugs
 - Fixed start number of files being inaccurate
 
+**Full Changelog**: [0.3.1...0.4.0](https://github.com/StoneCommander/BPSPhotopackConvert/compare/0.3.1...0.4.0)
+
 ## 0.3.1, 5/22/253
 totally forgot to change the version and date in the code. oops (－‸ლ)
 
+**Full Changelog**: [0.3.0...0.3.1](https://github.com/StoneCommander/BPSPhotopackConvert/compare/0.3.0...0.3.1)
+
 ## 0.3.0, 5/22/23
 Added button that links to the changelog.
+
+**Full Changelog**: [0.2.0...0.3.0](https://github.com/StoneCommander/BPSPhotopackConvert/compare/0.2.0...0.3.0)
 
 ## 0.2.0, 5/3/23
 minor changes. visual improvements
