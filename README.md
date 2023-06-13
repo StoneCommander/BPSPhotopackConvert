@@ -53,6 +53,12 @@ if you get this error, regardless if there are 30 photos or not. check the zip f
 if you get this error, it should tell you the filename that has a duplicate, and only one is kept. this happens when there are 2 photos with the same name, but diffrent exstention (Ex. 6.JPG and 6.HEIC). if this happens, you can rename one of the photos, or bring in an extra photo to replace it. 
 
 # Changelog
+## 0.4.2, 6/6/23
+
+### Improvements:
+Added double click on folder.  
+double click on the output or storage folder drop box to open the selected folder.
+
 ## 0.4.1, 5/25/23
 
 ### Improvements:
