@@ -53,6 +53,23 @@ if you get this error, regardless if there are 30 photos or not. check the zip f
 if you get this error, it should tell you the filename that has a duplicate, and only one is kept. this happens when there are 2 photos with the same name, but diffrent exstention (Ex. 6.JPG and 6.HEIC). if this happens, you can rename one of the photos, or bring in an extra photo to replace it. 
 
 # Changelog
+## 1.0.0 6/13/23
+
+### Main Features
+- Storage folder is now automatically set, and was removed from the screen
+- The selected output folder will now be remembered after you close the app
+
+### Improvements
+- You can now double click the output folder box to open the selected folder.
+- updated stats bar to include photo pack size stats
+
+### Internal changes
+ - Reworked stats display internally
+ - added debug mode for testing
+ - added full preferences file reading and updating
+
+**Full Changelog**: [0.4.2...1.0.0](https://github.com/StoneCommander/BPSPhotopackConvert/compare/0.4.2...1.0.0)
+
 ## 0.4.2, 6/6/23
 
 ### Improvements:
