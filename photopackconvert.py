@@ -1,6 +1,7 @@
 import PIL.Image
 from zipfile import ZipFile
 import os
+import sys
 import pillow_heif
 import shutil
 import time
@@ -12,20 +13,80 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog as fd
 from tkinter import messagebox
 import webbrowser
+import json
+import default
 
 pillow_heif.register_heif_opener()
 
-version = 'v0.4.2'
+version = 'v1.0.0'
 
 """
-PhotopackConvert v0.4.2
+PhotopackConvert v1.0.0
 
 Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
 
 """
 
-# init
+# Get local user path
+path = f"{os.path.expanduser('~')}\PhotopackConverData"
+print(path)
+
+# check if data folder exists
+if not os.path.exists(path):
+    print('path not found, creating')
+    os.makedirs(path)
+    print(os.path.exists(path))
+
+    result = messagebox.askquestion('Create Output folder', 'would you like to create and select a output folder on the desktop?')
+
+    ddat = default.data
+    
+    if result == 'yes':
+        # create desktop output folder
+        os.makedirs(f"{os.path.expanduser('~')}\Desktop\output")
+        ddat["fileLocations"]["Output"] = f"{os.path.expanduser('~')}\Desktop\output"
+    os.makedirs(f"{os.path.expanduser('~')}\PhotopackConverData\Store")
+    ddat["fileLocations"]["Storage"] = f"{os.path.expanduser('~')}\PhotopackConverData\Store"
+
+    with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
+        json.dump(ddat, f)
+
+
+else:
+    print('path found, files:')
+    for i in os.listdir(path):
+        print(i)
+
+# ---init---
+
+# get preferences
+preferences = None
+with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json") as pref:
+    preferences = json.load(pref)
+
+# check and update file version
+if preferences["fileVersion"] != default.data["fileVersion"]:
+    print(preferences)
+    for i in range(preferences["fileVersion"]+1,default.data["fileVersion"]+1):
+        print(i)
+        print(default.newData[i])
+        preferences.update(default.newData[i])
+    print(preferences)
+    preferences["fileVersion"] = default.data["fileVersion"]
+
+
+with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
+    json.dump(preferences, f)
+
+# Get debug value
+debug = preferences["debug"]
+print(debug)
+
+
+print(preferences)
+
+# Tkinter setup
 root = TkinterDnD.Tk()
 root.withdraw()
 root.title(f'PhotopackConvert {version}')
@@ -36,12 +97,17 @@ root.grid_columnconfigure(0, weight=1, minsize=30)
 root.grid_columnconfigure(1, weight=1, minsize=30)
 # Left label
 Label(root, text='Drop Photo pack Zip File').grid(
-                    row=0, column=0, padx=10, pady=5)
+                    row=0, column=0, padx=5, pady=5)
 # right label
 Label(root, text='Drop Output folder here').grid(
-                    row=0, column=1, padx=10, pady=5, columnspan=2)
-Label(root, text='drop storage folder here').grid(
-                    row=2, column=1, padx=10, pady=5, columnspan=2)
+                    row=0, column=1, padx=5, pady=5, columnspan=2)
+# storage folder (if debug)
+if debug:
+    Label(root, text='drop storage folder here').grid(
+                        row=2, column=1, padx=5, pady=5, columnspan=2)
+else:
+    Label(root, text='storage folder removed!').grid(
+                        row=2, column=1, padx=5, pady=5, columnspan=2)
 # Left file drop box
 filedrop = Listbox(root, name='fileDropbox', selectmode='extended', width=1, height=1)
 filedrop.grid(row=1, column=0, padx=5, pady=5, sticky='news',rowspan=3)
@@ -49,18 +115,21 @@ filedrop.insert('end', 'Drag Zip file to extract')
 # Right Output File path box
 outfilepath = Listbox(root, name='outputFileSet', selectmode='extended', width=1, height=1)
 outfilepath.grid(row=1, column=1, padx=5, pady=5, sticky='news')
-outfilepath.insert('end', 'Drag or select Output folder')
+if preferences["fileLocations"]["Output"] == "Unset": outfilepath.insert('end', 'Drag or select Output folder')
+else: outfilepath.insert('end', preferences["fileLocations"]["Output"])
 # Right Storage File path box
-storefilepath = Listbox(root, name='storeFileSet', selectmode='extended', width=1, height=1)
-storefilepath.grid(row=3, column=1, padx=5, pady=5, sticky='ewsn')
-storefilepath.insert('end', 'Drag or select Storage folder')
+
+if debug:
+    storefilepath = Listbox(root, name='storeFileSet', selectmode='extended', width=1, height=1)
+    storefilepath.grid(row=3, column=1, padx=5, pady=5, sticky='ewsn')
+    storefilepath.insert('end', preferences["fileLocations"]["Storage"])
 
 def returnContent():
     print(filedrop.get(0,0))
     print(outfilepath.get(0,0))
     print(storefilepath.get(0,0))
 
-
+# function for file dialouge button
 def selectFile(drop):
     filename = fd.askdirectory()
     if filename == '':
@@ -75,13 +144,12 @@ outfileselect = Frame(root)
 outfileselect.grid(row=1, column=2, columnspan=2, pady=5, sticky='')
 Button(outfileselect, text='...', command=lambda: selectFile(outfilepath), width=5).pack(side=TOP, padx=0)
 # storefileselect button
-storefileselect = Frame(root)
-storefileselect.grid(row=3, column=2, columnspan=2, pady=5, sticky='')
-Button(storefileselect, text='...', command=lambda: selectFile(storefilepath), width=5).pack(side=TOP, padx=0)
+if debug:
+    storefileselect = Frame(root)
+    storefileselect.grid(row=3, column=2, columnspan=2, pady=5, sticky='')
+    Button(storefileselect, text='...', command=lambda: selectFile(storefilepath), width=5).pack(side=TOP, padx=0)
 
-
-
-# define action on file drop
+# Tkinter DND Drop function
 def drop(event):
     if event.data:
         print('Dropped data:\n', event.data)
@@ -113,6 +181,7 @@ def drop(event):
                     print('Dropped file: "%s"' % f)
                     outfilepath.delete(0,99)
                     outfilepath.insert('end', f)
+                    preferences["fileLocations"]["Output"] = str(f)
                 else:
                     print('Not dropping file "%s": file does not exist.' % f)
         elif event.widget == storefilepath:
@@ -123,39 +192,75 @@ def drop(event):
                     print('Dropped file: "%s"' % f)
                     storefilepath.delete(0,99)
                     storefilepath.insert('end', f)
+                    preferences["fileLocations"]["Storage"] = str(f)
                 else:
                     print('Not dropping file "%s": file does not exist.' % f)
         else:
             print('Error: reported event.widget not known')
+    
+
+    with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
+        json.dump(preferences, f)
     return event.action
 
 
+stats = Frame(root, highlightbackground='blue')
+stats.grid(row=6, column=0, columnspan=3)
 
+# Total time label (0,0)
+totalTime = Label(stats, text='Total time:')
+totalTime.grid(row=0, column=0, padx=5, pady=5,sticky='e')
+totalTimeVal = Label(stats, text='##:##')
+totalTimeVal.grid(row=0, column=1, padx=5, pady=5,sticky='w')
+# start size label (0,2)
+startSize = Label(stats, text='Start Size:')
+startSize.grid(row=0, column=2, padx=5, pady=5,sticky='e')
+startSizeVal = Label(stats, text='##.####')
+startSizeVal.grid(row=0, column=3, padx=5, pady=5,sticky='w')
+# Number of files in storage folder (1,0)
+startFiles = Label(stats, text='start number of files:')
+startFiles.grid(row=1, column=0, padx=5, pady=5,sticky='e')
+startFilesVal = Label(stats, text='##')
+startFilesVal.grid(row=1, column=1, padx=5, pady=5,sticky='w')
+# start size label (1,2)
+endSize = Label(stats, text='End Size:')
+endSize.grid(row=1, column=2, padx=5, pady=5,sticky='e')
+endSizeVal = Label(stats, text='##.####')
+endSizeVal.grid(row=1, column=3, padx=5, pady=5,sticky='w')
+# number of files in output folder (2,0)
+numFiles = Label(stats, text='number of files:')
+numFiles.grid(row=2, column=0, padx=5, pady=5,sticky='e')
+numFilesVal = Label(stats, text='##')
+numFilesVal.grid(row=2, column=1, padx=5, pady=5,sticky='w')
+# start size label (2,2)
+spaceSaved = Label(stats, text='Space Saved:')
+spaceSaved.grid(row=2, column=2, padx=5, pady=5,sticky='e')
+spaceSavedVal = Label(stats, text='##.####')
+spaceSavedVal.grid(row=2, column=3, padx=5, pady=5,sticky='w')
+# status of the app (3)
+status = Label(stats, text='Status:')
+status.grid(row=3, column=1, padx=5, pady=5,sticky='e')
+statusVal = Label(stats, text='Inactive', fg='orange', width=50)
+statusVal.grid(row=3, column=2, padx=0, pady=0, sticky="w")
 
-# Total tile label
-totalTime = Label(root, text='Total time:')
-totalTime.grid(row=6, column=0, padx=10, pady=5,sticky='e')
-totalTimeVal = Label(root, text='##:##')
-totalTimeVal.grid(row=6, column=1, padx=10, pady=5,sticky='w')
-startFiles = Label(root, text='start number of files:')
-startFiles.grid(row=7, column=0, padx=10, pady=5,sticky='e')
-startFilesVal = Label(root, text='##')
-startFilesVal.grid(row=7, column=1, padx=10, pady=5,sticky='w')
-numFiles = Label(root, text='number of files:')
-numFiles.grid(row=8, column=0, padx=10, pady=5,sticky='e')
-numFilesVal = Label(root, text='##')
-numFilesVal.grid(row=8, column=1, padx=10, pady=5,sticky='w')
-status = Label(root, text='Status:')
-status.grid(row=9, column=0, padx=10, pady=5,sticky='e')
-statusVal = Label(root, text='Inactive', fg='orange', width=50)
-statusVal.grid(row=9, column=1, padx=0, pady=0, sticky="w")
-
+# update status function.
 def setStatus(text,fg="blue",statusVal=statusVal):
     print('update status')
     statusVal.config(text=str(text),fg=fg)
     root.update_idletasks()
 
+# gets size of all files in directory (in megabytes)
+def get_dir_size(path='.'):
+    total = 0
+    with os.scandir(path) as it:
+        for entry in it:
+            if entry.is_file():
+                total += entry.stat().st_size
+            elif entry.is_dir():
+                total += get_dir_size(entry.path)
+    return round(total / (1024 * 1024),4)
 
+# the main conversion function
 def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     other=[]
     pillow_heif.register_heif_opener()
@@ -175,6 +280,12 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
         zip_ref.extractall(inpath)
     times.append(time.perf_counter())
     startFilesVal.config(text=len(os.listdir(inpath)))
+    startSizeVal.config(text=get_dir_size(inpath))
+    SSize = get_dir_size(inpath)
+    numFilesVal.config(text="##")
+    totalTimeVal.config(text="##:##")
+    endSizeVal.config(text="##.####")
+    spaceSavedVal.config(text="##.####")
     print("Extracted")
     print(f"{times[0]-times[1]:0.4f}s")
     # iterate over files in
@@ -235,18 +346,28 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     end = time.perf_counter()
     endNum = len(os.listdir(outpath))
     duration = end-times[0]
-    return (end,endNum,duration,times,other,names)
-
+    ESize = get_dir_size(outpath)
+    Savings = SSize - ESize
+    return (end,endNum,duration,times,other,names,ESize,Savings)
+    #        0     1      2       3     4     5      6     7
+# conversion manager
+# this is what is called when the convert button is pressed. it gets the values and passes them into the photopackConvert function
 def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalTimeVal):
+    # ConvertButton["state"] = 'disabled'
     setStatus(text="Converting: Starting",fg='blue')
     Zipfile = filedrop.get(0,0)[0]
     outfile = outfilepath.get(0,0)[0]
-    storefile = storefilepath.get(0,0)[0]
+    if debug:
+        storefile = storefilepath.get(0,0)[0]
+    else:
+        storefile = preferences["fileLocations"]["Storage"]
     data = photopackConvert(Zipfile,storefile,outfile)
     print(data[4])
     print(data[5])
-    totalTimeVal.config(text=data[2])
+    totalTimeVal.config(text=round(data[2],4))
     numFilesVal.config(text=data[1])
+    endSizeVal.config(text=data[6])
+    spaceSavedVal.config(text=data[7])
     statStr = "Done"
     statClr = 'green'
     err = False
@@ -273,6 +394,7 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     if not err:
         statStr += ', files converted'
     setStatus(text=statStr,fg=statClr)
+    # ConvertButton["state"] = 'normal'
 
 # convert button
 ConvertButton = Frame(root)
@@ -280,18 +402,18 @@ ConvertButton.grid(row=4, column=0, columnspan=2, pady=5, sticky='new')
 Button(ConvertButton, text='Convert', command=convertFiles, width=100, height=2, fg="green").pack(side=TOP, padx=5)
 # horizontal divider
 divide = ttk.Separator(root, orient='horizontal').grid(row=5, column=0, columnspan=3,pady=5,sticky='ew')
-divide = ttk.Separator(root, orient='horizontal').grid(row=10, column=0, columnspan=3,pady=5,sticky='ew')
+divide = ttk.Separator(root, orient='horizontal').grid(row=7, column=0, columnspan=3,pady=5,sticky='ew')
 # DB creddits
 Cred = Label(root, text='Developed for BPS by Dallin Barker', fg='orange')
-Cred.grid(row=11, column=0, columnspan=3, padx=10, pady=5,sticky='n')
+Cred.grid(row=8, column=0, columnspan=3, padx=5, pady=5,sticky='n')
 # Quit button
 buttons = Frame(root)
-buttons.grid(row=12, column=0, columnspan=3, pady=5)
+buttons.grid(row=9, column=0, columnspan=3, pady=5)
 Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits",f"""
 Developed by Dallin Barker for Bright Planet Solar
-Ver: {version} 6/6/23
+Ver: {version} 6/13/23
 Main Modules: Tkinter, TkinterDND2, Pillow, Pillow-heic
 Packaged with Pyinstaller 
 Contact: Dallinbarker@gmail.com with any questions or concerns!
@@ -307,12 +429,13 @@ def Oclick(event):
     path = outfilepath.get(0,0)[0]
     os.startfile(path)
 outfilepath.bind('<Double-Button-1>',Oclick)
-storefilepath.drop_target_register(DND_FILES)
-storefilepath.dnd_bind('<<Drop>>', drop)
 def Sclick(event):
     path = storefilepath.get(0,0)[0]
     os.startfile(path)
-storefilepath.bind('<Double-Button-1>',Sclick)
+if debug:
+    storefilepath.drop_target_register(DND_FILES)
+    storefilepath.dnd_bind('<<Drop>>', drop)
+    storefilepath.bind('<Double-Button-1>',Sclick)
 
 
 
