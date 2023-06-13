@@ -1,6 +1,7 @@
 import PIL.Image
 from zipfile import ZipFile
 import os
+import sys
 import pillow_heif
 import shutil
 import time
@@ -96,17 +97,17 @@ root.grid_columnconfigure(0, weight=1, minsize=30)
 root.grid_columnconfigure(1, weight=1, minsize=30)
 # Left label
 Label(root, text='Drop Photo pack Zip File').grid(
-                    row=0, column=0, padx=10, pady=5)
+                    row=0, column=0, padx=5, pady=5)
 # right label
 Label(root, text='Drop Output folder here').grid(
-                    row=0, column=1, padx=10, pady=5, columnspan=2)
+                    row=0, column=1, padx=5, pady=5, columnspan=2)
 # storage folder (if debug)
 if debug:
     Label(root, text='drop storage folder here').grid(
-                        row=2, column=1, padx=10, pady=5, columnspan=2)
+                        row=2, column=1, padx=5, pady=5, columnspan=2)
 else:
     Label(root, text='storage folder removed!').grid(
-                        row=2, column=1, padx=10, pady=5, columnspan=2)
+                        row=2, column=1, padx=5, pady=5, columnspan=2)
 # Left file drop box
 filedrop = Listbox(root, name='fileDropbox', selectmode='extended', width=1, height=1)
 filedrop.grid(row=1, column=0, padx=5, pady=5, sticky='news',rowspan=3)
@@ -203,35 +204,61 @@ def drop(event):
     return event.action
 
 
+stats = Frame(root, highlightbackground='blue')
+stats.grid(row=6, column=0, columnspan=3)
 
-
-# Total tile label
-totalTime = Label(root, text='Total time:')
-totalTime.grid(row=6, column=0, padx=10, pady=5,sticky='e')
-totalTimeVal = Label(root, text='##:##')
-totalTimeVal.grid(row=6, column=1, padx=10, pady=5,sticky='w')
-# Number of files in storage folder
-startFiles = Label(root, text='start number of files:')
-startFiles.grid(row=7, column=0, padx=10, pady=5,sticky='e')
-startFilesVal = Label(root, text='##')
-startFilesVal.grid(row=7, column=1, padx=10, pady=5,sticky='w')
-# number of files in output folder
-numFiles = Label(root, text='number of files:')
-numFiles.grid(row=8, column=0, padx=10, pady=5,sticky='e')
-numFilesVal = Label(root, text='##')
-numFilesVal.grid(row=8, column=1, padx=10, pady=5,sticky='w')
-# status of the app
-status = Label(root, text='Status:')
-status.grid(row=9, column=0, padx=10, pady=5,sticky='e')
-statusVal = Label(root, text='Inactive', fg='orange', width=50)
-statusVal.grid(row=9, column=1, padx=0, pady=0, sticky="w")
-
+# Total time label (0,0)
+totalTime = Label(stats, text='Total time:')
+totalTime.grid(row=0, column=0, padx=5, pady=5,sticky='e')
+totalTimeVal = Label(stats, text='##:##')
+totalTimeVal.grid(row=0, column=1, padx=5, pady=5,sticky='w')
+# start size label (0,2)
+startSize = Label(stats, text='Start Size:')
+startSize.grid(row=0, column=2, padx=5, pady=5,sticky='e')
+startSizeVal = Label(stats, text='##.####')
+startSizeVal.grid(row=0, column=3, padx=5, pady=5,sticky='w')
+# Number of files in storage folder (1,0)
+startFiles = Label(stats, text='start number of files:')
+startFiles.grid(row=1, column=0, padx=5, pady=5,sticky='e')
+startFilesVal = Label(stats, text='##')
+startFilesVal.grid(row=1, column=1, padx=5, pady=5,sticky='w')
+# start size label (1,2)
+endSize = Label(stats, text='End Size:')
+endSize.grid(row=1, column=2, padx=5, pady=5,sticky='e')
+endSizeVal = Label(stats, text='##.####')
+endSizeVal.grid(row=1, column=3, padx=5, pady=5,sticky='w')
+# number of files in output folder (2,0)
+numFiles = Label(stats, text='number of files:')
+numFiles.grid(row=2, column=0, padx=5, pady=5,sticky='e')
+numFilesVal = Label(stats, text='##')
+numFilesVal.grid(row=2, column=1, padx=5, pady=5,sticky='w')
+# start size label (2,2)
+spaceSaved = Label(stats, text='Space Saved:')
+spaceSaved.grid(row=2, column=2, padx=5, pady=5,sticky='e')
+spaceSavedVal = Label(stats, text='##.####')
+spaceSavedVal.grid(row=2, column=3, padx=5, pady=5,sticky='w')
+# status of the app (3)
+status = Label(stats, text='Status:')
+status.grid(row=3, column=1, padx=5, pady=5,sticky='e')
+statusVal = Label(stats, text='Inactive', fg='orange', width=50)
+statusVal.grid(row=3, column=2, padx=0, pady=0, sticky="w")
 
 # update status function.
 def setStatus(text,fg="blue",statusVal=statusVal):
     print('update status')
     statusVal.config(text=str(text),fg=fg)
     root.update_idletasks()
+
+# gets size of all files in directory (in megabytes)
+def get_dir_size(path='.'):
+    total = 0
+    with os.scandir(path) as it:
+        for entry in it:
+            if entry.is_file():
+                total += entry.stat().st_size
+            elif entry.is_dir():
+                total += get_dir_size(entry.path)
+    return round(total / (1024 * 1024),4)
 
 # the main conversion function
 def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
@@ -253,8 +280,12 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
         zip_ref.extractall(inpath)
     times.append(time.perf_counter())
     startFilesVal.config(text=len(os.listdir(inpath)))
+    startSizeVal.config(text=get_dir_size(inpath))
+    SSize = get_dir_size(inpath)
     numFilesVal.config(text="##")
     totalTimeVal.config(text="##:##")
+    endSizeVal.config(text="##.####")
+    spaceSavedVal.config(text="##.####")
     print("Extracted")
     print(f"{times[0]-times[1]:0.4f}s")
     # iterate over files in
@@ -315,8 +346,10 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     end = time.perf_counter()
     endNum = len(os.listdir(outpath))
     duration = end-times[0]
-    return (end,endNum,duration,times,other,names)
-
+    ESize = get_dir_size(outpath)
+    Savings = SSize - ESize
+    return (end,endNum,duration,times,other,names,ESize,Savings)
+    #        0     1      2       3     4     5      6     7
 # conversion manager
 # this is what is called when the convert button is pressed. it gets the values and passes them into the photopackConvert function
 def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalTimeVal):
@@ -333,6 +366,8 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     print(data[5])
     totalTimeVal.config(text=round(data[2],4))
     numFilesVal.config(text=data[1])
+    endSizeVal.config(text=data[6])
+    spaceSavedVal.config(text=data[7])
     statStr = "Done"
     statClr = 'green'
     err = False
@@ -367,13 +402,13 @@ ConvertButton.grid(row=4, column=0, columnspan=2, pady=5, sticky='new')
 Button(ConvertButton, text='Convert', command=convertFiles, width=100, height=2, fg="green").pack(side=TOP, padx=5)
 # horizontal divider
 divide = ttk.Separator(root, orient='horizontal').grid(row=5, column=0, columnspan=3,pady=5,sticky='ew')
-divide = ttk.Separator(root, orient='horizontal').grid(row=10, column=0, columnspan=3,pady=5,sticky='ew')
+divide = ttk.Separator(root, orient='horizontal').grid(row=7, column=0, columnspan=3,pady=5,sticky='ew')
 # DB creddits
 Cred = Label(root, text='Developed for BPS by Dallin Barker', fg='orange')
-Cred.grid(row=11, column=0, columnspan=3, padx=10, pady=5,sticky='n')
+Cred.grid(row=8, column=0, columnspan=3, padx=5, pady=5,sticky='n')
 # Quit button
 buttons = Frame(root)
-buttons.grid(row=12, column=0, columnspan=3, pady=5)
+buttons.grid(row=9, column=0, columnspan=3, pady=5)
 Button(buttons, text='Quit', command=root.quit, fg='red').pack(side=LEFT, padx=5)
 # Creddits button
 Button(buttons, text='Credits', command= lambda: messagebox.showinfo("Credits",f"""
