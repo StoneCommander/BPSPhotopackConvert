@@ -1,11 +1,14 @@
 # BPSPhotopackConvert
  Developed by Dallin Barker for Bright Planet Solar  
- **Ver: 0.4.0 5/22/23**
+ **Ver: 1.0.0 6/13/23**
 ## Modules Used:
  Tkinter, TkinterDND2, Pillow, Pillow-heic.  
  Packaged with Pyinstaller  
 ## Contact:
-Email Dallinbarker@gmail.com with any questions or concerns!
+Email Dallinbarker@gmail.com with any questions or concerns!  
+  
+  
+**[Jump to changelog](https://github.com/StoneCommander/BPSPhotopackConvert#changelog)**
 # Usage
 ## Download
 download the latest version of the PhotopackConverter by clicking on the latest version on the right. or [CLICK HERE](https://github.com/StoneCommander/BPSPhotopackConvert/releases/latest)  
