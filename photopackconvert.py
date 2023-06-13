@@ -27,8 +27,11 @@ Dallinbarker@gmail.com
 
 """
 
+# Get local user path
 path = f"{os.path.expanduser('~')}\PhotopackConverData"
 print(path)
+
+# check if data folder exists
 if not os.path.exists(path):
     print('path not found, creating')
     os.makedirs(path)
@@ -36,11 +39,10 @@ if not os.path.exists(path):
 
     result = messagebox.askquestion('Create Output folder', 'would you like to create and select a output folder on the desktop?')
 
-
-
     ddat = default.data
     
     if result == 'yes':
+        # create desktop output folder
         os.makedirs(f"{os.path.expanduser('~')}\Desktop\output")
         ddat["fileLocations"]["Output"] = f"{os.path.expanduser('~')}\Desktop\output"
     os.makedirs(f"{os.path.expanduser('~')}\PhotopackConverData\Store")
@@ -55,12 +57,14 @@ else:
     for i in os.listdir(path):
         print(i)
 
-# init
+# ---init---
 
+# get preferences
 preferences = None
 with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json") as pref:
     preferences = json.load(pref)
 
+# check and update file version
 if preferences["fileVersion"] != default.data["fileVersion"]:
     print(preferences)
     for i in range(preferences["fileVersion"]+1,default.data["fileVersion"]+1):
@@ -74,12 +78,14 @@ if preferences["fileVersion"] != default.data["fileVersion"]:
 with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
     json.dump(preferences, f)
 
+# Get debug value
 debug = preferences["debug"]
 print(debug)
 
 
 print(preferences)
 
+# Tkinter setup
 root = TkinterDnD.Tk()
 root.withdraw()
 root.title(f'PhotopackConvert {version}')
@@ -94,7 +100,7 @@ Label(root, text='Drop Photo pack Zip File').grid(
 # right label
 Label(root, text='Drop Output folder here').grid(
                     row=0, column=1, padx=10, pady=5, columnspan=2)
-
+# storage folder (if debug)
 if debug:
     Label(root, text='drop storage folder here').grid(
                         row=2, column=1, padx=10, pady=5, columnspan=2)
@@ -122,7 +128,7 @@ def returnContent():
     print(outfilepath.get(0,0))
     print(storefilepath.get(0,0))
 
-
+# function for file dialouge button
 def selectFile(drop):
     filename = fd.askdirectory()
     if filename == '':
@@ -137,15 +143,12 @@ outfileselect = Frame(root)
 outfileselect.grid(row=1, column=2, columnspan=2, pady=5, sticky='')
 Button(outfileselect, text='...', command=lambda: selectFile(outfilepath), width=5).pack(side=TOP, padx=0)
 # storefileselect button
-
 if debug:
     storefileselect = Frame(root)
     storefileselect.grid(row=3, column=2, columnspan=2, pady=5, sticky='')
     Button(storefileselect, text='...', command=lambda: selectFile(storefilepath), width=5).pack(side=TOP, padx=0)
 
-
-
-# define action on file drop
+# Tkinter DND Drop function
 def drop(event):
     if event.data:
         print('Dropped data:\n', event.data)
@@ -207,25 +210,30 @@ totalTime = Label(root, text='Total time:')
 totalTime.grid(row=6, column=0, padx=10, pady=5,sticky='e')
 totalTimeVal = Label(root, text='##:##')
 totalTimeVal.grid(row=6, column=1, padx=10, pady=5,sticky='w')
+# Number of files in storage folder
 startFiles = Label(root, text='start number of files:')
 startFiles.grid(row=7, column=0, padx=10, pady=5,sticky='e')
 startFilesVal = Label(root, text='##')
 startFilesVal.grid(row=7, column=1, padx=10, pady=5,sticky='w')
+# number of files in output folder
 numFiles = Label(root, text='number of files:')
 numFiles.grid(row=8, column=0, padx=10, pady=5,sticky='e')
 numFilesVal = Label(root, text='##')
 numFilesVal.grid(row=8, column=1, padx=10, pady=5,sticky='w')
+# status of the app
 status = Label(root, text='Status:')
 status.grid(row=9, column=0, padx=10, pady=5,sticky='e')
 statusVal = Label(root, text='Inactive', fg='orange', width=50)
 statusVal.grid(row=9, column=1, padx=0, pady=0, sticky="w")
 
+
+# update status function.
 def setStatus(text,fg="blue",statusVal=statusVal):
     print('update status')
     statusVal.config(text=str(text),fg=fg)
     root.update_idletasks()
 
-
+# the main conversion function
 def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     other=[]
     pillow_heif.register_heif_opener()
@@ -245,6 +253,8 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
         zip_ref.extractall(inpath)
     times.append(time.perf_counter())
     startFilesVal.config(text=len(os.listdir(inpath)))
+    numFilesVal.config(text="##")
+    totalTimeVal.config(text="##:##")
     print("Extracted")
     print(f"{times[0]-times[1]:0.4f}s")
     # iterate over files in
@@ -307,7 +317,10 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     duration = end-times[0]
     return (end,endNum,duration,times,other,names)
 
+# conversion manager
+# this is what is called when the convert button is pressed. it gets the values and passes them into the photopackConvert function
 def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalTimeVal):
+    # ConvertButton["state"] = 'disabled'
     setStatus(text="Converting: Starting",fg='blue')
     Zipfile = filedrop.get(0,0)[0]
     outfile = outfilepath.get(0,0)[0]
@@ -318,7 +331,7 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     data = photopackConvert(Zipfile,storefile,outfile)
     print(data[4])
     print(data[5])
-    totalTimeVal.config(text=data[2])
+    totalTimeVal.config(text=round(data[2],4))
     numFilesVal.config(text=data[1])
     statStr = "Done"
     statClr = 'green'
@@ -346,6 +359,7 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     if not err:
         statStr += ', files converted'
     setStatus(text=statStr,fg=statClr)
+    # ConvertButton["state"] = 'normal'
 
 # convert button
 ConvertButton = Frame(root)
