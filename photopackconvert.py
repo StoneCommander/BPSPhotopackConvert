@@ -243,15 +243,15 @@ Prog.grid(row=0,column=0,padx=5,pady=5,columnspan=4,sticky='new')
 
 # progress pcnt (1,0)
 ProgPcnt = Label(stats, text='Precent:')
-ProgPcnt.grid(row=2, column=0, padx=5, pady=5,sticky='e')
+ProgPcnt.grid(row=1, column=0, padx=5, pady=5,sticky='e')
 ProgPcntVal = Label(stats, text='%##.##')
-ProgPcntVal.grid(row=2, column=1, padx=5, pady=5,sticky='w')
+ProgPcntVal.grid(row=1, column=1, padx=5, pady=5,sticky='w')
 
-# progress fraction (1,1)
+# progress fraction (1,2)
 ProgFract = Label(stats, text='Photos:')
-ProgFract.grid(row=2, column=0, padx=5, pady=5,sticky='e')
+ProgFract.grid(row=1, column=2, padx=5, pady=5,sticky='e')
 ProgFractVal = Label(stats, text='##/##')
-ProgFractVal.grid(row=2, column=1, padx=5, pady=5,sticky='w')
+ProgFractVal.grid(row=1, column=3, padx=5, pady=5,sticky='w')
 
 # Total time label (2,0)
 totalTime = Label(stats, text='Total time:')
@@ -387,6 +387,10 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 nspace = os.stat(outpath+"/"+title+'.jpg').st_size
             print("New space: ",nspace,lvl=logging.DEBUG)
             now = time.perf_counter()
+            ProgFractVal.config(text=f'{i}/{numPhotos}')
+            pcnt = round((i/numPhotos)*100,4)
+            Prog['value'] = pcnt
+            ProgPcntVal.config(text=f'%{pcnt}')
             print(f"image {i}",lvl=logging.DEBUG)
             print(now-times[0],lvl=logging.DEBUG)
             print(f"+{now-times[len(times)-1]}",lvl=logging.DEBUG)
