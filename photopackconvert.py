@@ -30,6 +30,11 @@ Dallinbarker@gmail.com
 
 """
 
+path = f"{os.path.expanduser('~')}\PhotopackConverData"
+if not os.path.exists(f"{path}\logs") and os.path.exists(path):
+    print('log path not found, creating')
+    os.makedirs(f"{path}\logs")
+
 # Logging exeption catcher
 def exception_hook(exc_type, exc_value, exc_traceback):
    logging.error(
@@ -42,7 +47,7 @@ def exception_hook(exc_type, exc_value, exc_traceback):
 def set_up_logger():
     date_time_obj = datetime.now()
     timestamp_str = date_time_obj.strftime("%d-%b-%Y_%H_%M_%S")
-    filename = r'C:\Users\Dallin Barker\Documents\log\log-'+f'{version}-'+f'{timestamp_str}.log'
+    filename = f"{path}\logs\log-"+f'{version}-'+f'{timestamp_str}.log'
     logging.basicConfig(filename=filename,level=logging.DEBUG)
     sys.excepthook = exception_hook
 
@@ -53,20 +58,19 @@ def print(*txt,lvl=logging.INFO):
     # print(txt)
     logging.log(lvl,txt)
 
-    
-set_up_logger()
+if os.path.exists(path): set_up_logger()
 
 pillow_heif.register_heif_opener()
 
 
 # Get local user path
-path = f"{os.path.expanduser('~')}\PhotopackConverData"
 print(path)
 
 # check if data folder exists
 if not os.path.exists(path):
     print('path not found, creating')
     os.makedirs(path)
+    os.makedirs(f"{path}\logs")
     print(os.path.exists(path),lvl=logging.DEBUG)
 
     result = messagebox.askquestion('Create Output folder', 'would you like to create and select a output folder on the desktop?')
@@ -83,11 +87,18 @@ if not os.path.exists(path):
     with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
         json.dump(ddat, f)
 
+        
+    messagebox.showwarning('Restart','Photopack convert has set up neccicary files and will now quit. please restart the app to continue')
+    quit()
+
+    
+
 
 else:
     print('path found, files:')
     for i in os.listdir(path):
         print(i)
+
 
 # ---init---
 
