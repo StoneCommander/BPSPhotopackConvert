@@ -17,6 +17,7 @@ from tkinter import messagebox
 import webbrowser
 import json
 import default
+import threading
 
 
 version = 'v1.0.0'
@@ -28,6 +29,11 @@ Developed for BPS by Dallin Barker
 Dallinbarker@gmail.com
 
 """
+
+path = f"{os.path.expanduser('~')}\PhotopackConverData"
+if not os.path.exists(f"{path}\logs") and os.path.exists(path):
+    print('log path not found, creating')
+    os.makedirs(f"{path}\logs")
 
 # Logging exeption catcher
 def exception_hook(exc_type, exc_value, exc_traceback):
@@ -41,7 +47,7 @@ def exception_hook(exc_type, exc_value, exc_traceback):
 def set_up_logger():
     date_time_obj = datetime.now()
     timestamp_str = date_time_obj.strftime("%d-%b-%Y_%H_%M_%S")
-    filename = r'C:\Users\Dallin Barker\Documents\log\log-'+f'{version}-'+f'{timestamp_str}.log'
+    filename = f"{path}\logs\log-"+f'{version}-'+f'{timestamp_str}.log'
     logging.basicConfig(filename=filename,level=logging.DEBUG)
     sys.excepthook = exception_hook
 
@@ -52,20 +58,19 @@ def print(*txt,lvl=logging.INFO):
     # print(txt)
     logging.log(lvl,txt)
 
-    
-set_up_logger()
+if os.path.exists(path): set_up_logger()
 
 pillow_heif.register_heif_opener()
 
 
 # Get local user path
-path = f"{os.path.expanduser('~')}\PhotopackConverData"
 print(path)
 
 # check if data folder exists
 if not os.path.exists(path):
     print('path not found, creating')
     os.makedirs(path)
+    os.makedirs(f"{path}\logs")
     print(os.path.exists(path),lvl=logging.DEBUG)
 
     result = messagebox.askquestion('Create Output folder', 'would you like to create and select a output folder on the desktop?')
@@ -82,11 +87,18 @@ if not os.path.exists(path):
     with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
         json.dump(ddat, f)
 
+        
+    messagebox.showwarning('Restart','Photopack convert has set up neccicary files and will now quit. please restart the app to continue')
+    quit()
+
+    
+
 
 else:
     print('path found, files:')
     for i in os.listdir(path):
         print(i)
+
 
 # ---init---
 
@@ -236,42 +248,57 @@ def drop(event):
 
 stats = Frame(root, highlightbackground='blue')
 stats.grid(row=6, column=0, columnspan=3)
+# progress bar (0,0)
+Prog = ttk.Progressbar(stats,orient= HORIZONTAL)
+Prog.grid(row=0,column=0,padx=5,pady=5,columnspan=4,sticky='new')
 
-# Total time label (0,0)
+# progress pcnt (1,0)
+ProgPcnt = Label(stats, text='Precent:')
+ProgPcnt.grid(row=1, column=0, padx=5, pady=5,sticky='e')
+ProgPcntVal = Label(stats, text='%##.##')
+ProgPcntVal.grid(row=1, column=1, padx=5, pady=5,sticky='w')
+
+# progress fraction (1,2)
+ProgFract = Label(stats, text='Photos:')
+ProgFract.grid(row=1, column=2, padx=5, pady=5,sticky='e')
+ProgFractVal = Label(stats, text='##/##')
+ProgFractVal.grid(row=1, column=3, padx=5, pady=5,sticky='w')
+
+# Total time label (2,0)
 totalTime = Label(stats, text='Total time:')
-totalTime.grid(row=0, column=0, padx=5, pady=5,sticky='e')
+totalTime.grid(row=2, column=0, padx=5, pady=5,sticky='e')
 totalTimeVal = Label(stats, text='##:##')
-totalTimeVal.grid(row=0, column=1, padx=5, pady=5,sticky='w')
-# start size label (0,2)
-startSize = Label(stats, text='Start Size:')
-startSize.grid(row=0, column=2, padx=5, pady=5,sticky='e')
-startSizeVal = Label(stats, text='##.####')
-startSizeVal.grid(row=0, column=3, padx=5, pady=5,sticky='w')
-# Number of files in storage folder (1,0)
-startFiles = Label(stats, text='start number of files:')
-startFiles.grid(row=1, column=0, padx=5, pady=5,sticky='e')
-startFilesVal = Label(stats, text='##')
-startFilesVal.grid(row=1, column=1, padx=5, pady=5,sticky='w')
-# start size label (1,2)
-endSize = Label(stats, text='End Size:')
-endSize.grid(row=1, column=2, padx=5, pady=5,sticky='e')
-endSizeVal = Label(stats, text='##.####')
-endSizeVal.grid(row=1, column=3, padx=5, pady=5,sticky='w')
-# number of files in output folder (2,0)
-numFiles = Label(stats, text='number of files:')
-numFiles.grid(row=2, column=0, padx=5, pady=5,sticky='e')
-numFilesVal = Label(stats, text='##')
-numFilesVal.grid(row=2, column=1, padx=5, pady=5,sticky='w')
+totalTimeVal.grid(row=2, column=1, padx=5, pady=5,sticky='w')
 # start size label (2,2)
+startSize = Label(stats, text='Start Size:')
+startSize.grid(row=2, column=2, padx=5, pady=5,sticky='e')
+startSizeVal = Label(stats, text='##.####')
+startSizeVal.grid(row=2, column=3, padx=5, pady=5,sticky='w')
+# Number of files in storage folder (3,0)
+startFiles = Label(stats, text='start number of files:')
+startFiles.grid(row=3, column=0, padx=5, pady=5,sticky='e')
+startFilesVal = Label(stats, text='##')
+startFilesVal.grid(row=3, column=1, padx=5, pady=5,sticky='w')
+# start size label (3,2)
+endSize = Label(stats, text='End Size:')
+endSize.grid(row=3, column=2, padx=5, pady=5,sticky='e')
+endSizeVal = Label(stats, text='##.####')
+endSizeVal.grid(row=3, column=3, padx=5, pady=5,sticky='w')
+# number of files in output folder (4,0)
+numFiles = Label(stats, text='number of files:')
+numFiles.grid(row=4, column=0, padx=5, pady=5,sticky='e')
+numFilesVal = Label(stats, text='##')
+numFilesVal.grid(row=4, column=1, padx=5, pady=5,sticky='w')
+# start size label (4,2)
 spaceSaved = Label(stats, text='Space Saved:')
-spaceSaved.grid(row=2, column=2, padx=5, pady=5,sticky='e')
+spaceSaved.grid(row=4, column=2, padx=5, pady=5,sticky='e')
 spaceSavedVal = Label(stats, text='##.####')
-spaceSavedVal.grid(row=2, column=3, padx=5, pady=5,sticky='w')
-# status of the app (3)
+spaceSavedVal.grid(row=4, column=3, padx=5, pady=5,sticky='w')
+# status of the app (5)
 status = Label(stats, text='Status:')
-status.grid(row=3, column=1, padx=5, pady=5,sticky='e')
+status.grid(row=5, column=1, padx=5, pady=5,sticky='e')
 statusVal = Label(stats, text='Inactive', fg='orange', width=50)
-statusVal.grid(row=3, column=2, padx=0, pady=0, sticky="w")
+statusVal.grid(row=5, column=2, padx=0, pady=0, sticky="w")
 
 # update status function.
 def setStatus(text,fg="blue",statusVal=statusVal):
@@ -323,6 +350,10 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
     i=1
     numPhotos = len(os.listdir(inpath))
     print(f"Num Photos: {numPhotos}")
+    pcnt = 00
+    Prog['value'] = 0
+    ProgPcntVal.config(text=pcnt)
+    ProgFractVal.config(text=f'0/{numPhotos}')
     delay = []
     names = []
     for filename in os.listdir(inpath):
@@ -367,6 +398,10 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 nspace = os.stat(outpath+"/"+title+'.jpg').st_size
             print("New space: ",nspace,lvl=logging.DEBUG)
             now = time.perf_counter()
+            ProgFractVal.config(text=f'{i}/{numPhotos}')
+            pcnt = round((i/numPhotos)*100,4)
+            Prog['value'] = pcnt
+            ProgPcntVal.config(text=f'%{pcnt}')
             print(f"image {i}",lvl=logging.DEBUG)
             print(now-times[0],lvl=logging.DEBUG)
             print(f"+{now-times[len(times)-1]}",lvl=logging.DEBUG)
@@ -397,7 +432,7 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     totalTimeVal.config(text=round(data[2],4))
     numFilesVal.config(text=data[1])
     endSizeVal.config(text=data[6])
-    spaceSavedVal.config(text=data[7])
+    spaceSavedVal.config(text=round(data[7],4))
     statStr = "Done"
     statClr = 'green'
     err = False
@@ -426,10 +461,14 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     setStatus(text=statStr,fg=statClr)
     # ConvertButton["state"] = 'normal'
 
+def convertThread():
+    T = threading.Thread(target=convertFiles)
+    T.start()
+
 # convert button
 ConvertButton = Frame(root)
 ConvertButton.grid(row=4, column=0, columnspan=2, pady=5, sticky='new')
-Button(ConvertButton, text='Convert', command=convertFiles, width=100, height=2, fg="green").pack(side=TOP, padx=5)
+Button(ConvertButton, text='Convert', command=convertThread, width=100, height=2, fg="green").pack(side=TOP, padx=5)
 # horizontal divider
 divide = ttk.Separator(root, orient='horizontal').grid(row=5, column=0, columnspan=3,pady=5,sticky='ew')
 divide = ttk.Separator(root, orient='horizontal').grid(row=7, column=0, columnspan=3,pady=5,sticky='ew')
