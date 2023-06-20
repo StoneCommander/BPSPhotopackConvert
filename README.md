@@ -56,6 +56,16 @@ if you get this error, regardless if there are 30 photos or not. check the zip f
 if you get this error, it should tell you the filename that has a duplicate, and only one is kept. this happens when there are 2 photos with the same name, but diffrent exstention (Ex. 6.JPG and 6.HEIC). if this happens, you can rename one of the photos, or bring in an extra photo to replace it. 
 
 # Changelog
+
+## 1.1.0 6/20/23
+
+### Main Features
+- added threading to allow for better processing
+- added logging to log processes to a file
+- releases will now include a DEBUG version of the release that will run with console, only download when instructed to do so
+
+**Full Changelog**: [1.0.0...1.1.0](https://github.com/StoneCommander/BPSPhotopackConvert/compare/1.0.0...1.1.0)
+
 ## 1.0.0 6/13/23
 
 ### Main Features
