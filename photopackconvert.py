@@ -2,6 +2,8 @@ import PIL.Image
 from zipfile import ZipFile
 import os
 import sys
+import logging
+from datetime import datetime
 import pillow_heif
 import shutil
 import time
@@ -16,7 +18,6 @@ import webbrowser
 import json
 import default
 
-pillow_heif.register_heif_opener()
 
 version = 'v1.0.0'
 
@@ -28,6 +29,35 @@ Dallinbarker@gmail.com
 
 """
 
+# Logging exeption catcher
+def exception_hook(exc_type, exc_value, exc_traceback):
+   logging.error(
+       "Uncaught exception",
+       exc_info=(exc_type, exc_value, exc_traceback)
+   )
+   sys.exit()
+
+# Logging init
+def set_up_logger():
+    date_time_obj = datetime.now()
+    timestamp_str = date_time_obj.strftime("%d-%b-%Y_%H_%M_%S")
+    filename = r'C:\Users\Dallin Barker\Documents\log\log-'+f'{version}-'+f'{timestamp_str}.log'
+    logging.basicConfig(filename=filename,level=logging.DEBUG)
+    sys.excepthook = exception_hook
+
+# custom print function for logging
+def print(*txt,lvl=logging.INFO):
+    txt = ''.join([str(x) for x in txt])
+    __builtins__.print(txt)
+    # print(txt)
+    logging.log(lvl,txt)
+
+    
+set_up_logger()
+
+pillow_heif.register_heif_opener()
+
+
 # Get local user path
 path = f"{os.path.expanduser('~')}\PhotopackConverData"
 print(path)
@@ -36,7 +66,7 @@ print(path)
 if not os.path.exists(path):
     print('path not found, creating')
     os.makedirs(path)
-    print(os.path.exists(path))
+    print(os.path.exists(path),lvl=logging.DEBUG)
 
     result = messagebox.askquestion('Create Output folder', 'would you like to create and select a output folder on the desktop?')
 
@@ -69,10 +99,10 @@ with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json") as 
 if preferences["fileVersion"] != default.data["fileVersion"]:
     print(preferences)
     for i in range(preferences["fileVersion"]+1,default.data["fileVersion"]+1):
-        print(i)
-        print(default.newData[i])
+        print(i,lvl=logging.DEBUG)
+        print(default.newData[i],lvl=logging.DEBUG)
         preferences.update(default.newData[i])
-    print(preferences)
+    print(preferences,lvl=logging.DEBUG)
     preferences["fileVersion"] = default.data["fileVersion"]
 
 
@@ -81,10 +111,10 @@ with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w'
 
 # Get debug value
 debug = preferences["debug"]
-print(debug)
+print(debug,lvl=logging.DEBUG)
 
 
-print(preferences)
+print(preferences,lvl=logging.DEBUG)
 
 # Tkinter setup
 root = TkinterDnD.Tk()
@@ -125,9 +155,9 @@ if debug:
     storefilepath.insert('end', preferences["fileLocations"]["Storage"])
 
 def returnContent():
-    print(filedrop.get(0,0))
-    print(outfilepath.get(0,0))
-    print(storefilepath.get(0,0))
+    print(filedrop.get(0,0),lvl=logging.DEBUG)
+    print(outfilepath.get(0,0),lvl=logging.DEBUG)
+    print(storefilepath.get(0,0),lvl=logging.DEBUG)
 
 # function for file dialouge button
 def selectFile(drop):
@@ -166,37 +196,37 @@ def drop(event):
             files = filedrop.tk.splitlist(event.data)
             for f in files:
                 if os.path.exists(f):
-                    print('Dropped file: "%s"' % f)
+                    print('Dropped file: "%s"' % f,lvl=logging.DEBUG)
                     filedrop.delete(0,99)
                     filedrop.insert('end', f)
 
                                     
                 else:
-                    print('Not dropping file "%s": file does not exist.' % f)
+                    print('Not dropping file "%s": file does not exist.' % f,lvl=logging.DEBUG)
         elif event.widget == outfilepath:
             print('OUT FOLDER')
             files = outfilepath.tk.splitlist(event.data)
             for f in files:
                 if os.path.exists(f):
-                    print('Dropped file: "%s"' % f)
+                    print('Dropped file: "%s"' % f,lvl=logging.DEBUG)
                     outfilepath.delete(0,99)
                     outfilepath.insert('end', f)
                     preferences["fileLocations"]["Output"] = str(f)
                 else:
-                    print('Not dropping file "%s": file does not exist.' % f)
+                    print('Not dropping file "%s": file does not exist.' % f,lvl=logging.DEBUG)
         elif event.widget == storefilepath:
             print('STORE FOLDER')
             files = storefilepath.tk.splitlist(event.data)
             for f in files:
                 if os.path.exists(f):
-                    print('Dropped file: "%s"' % f)
+                    print('Dropped file: "%s"' % f,lvl=logging.DEBUG)
                     storefilepath.delete(0,99)
                     storefilepath.insert('end', f)
                     preferences["fileLocations"]["Storage"] = str(f)
                 else:
-                    print('Not dropping file "%s": file does not exist.' % f)
+                    print('Not dropping file "%s": file does not exist.' % f,lvl=logging.DEBUG)
         else:
-            print('Error: reported event.widget not known')
+            print('Error: reported event.widget not known',lvl=logging.ERROR)
     
 
     with open(f"{os.path.expanduser('~')}\PhotopackConverData\preferences.json", 'w') as f:
@@ -245,7 +275,7 @@ statusVal.grid(row=3, column=2, padx=0, pady=0, sticky="w")
 
 # update status function.
 def setStatus(text,fg="blue",statusVal=statusVal):
-    print('update status')
+    print('update status',lvl=logging.DEBUG)
     statusVal.config(text=str(text),fg=fg)
     root.update_idletasks()
 
@@ -305,41 +335,41 @@ def photopackConvert(ZipPath,inpath,outpath,statusVal=statusVal):
                 setStatus(text=f"Converting: {filename[0:7]}...{extntion}",fg='blue')
             else:
                 setStatus(text=f"Converting: {filename}",fg='blue')
-            print("name: ",filename)
+            print("name: ",filename,lvl=logging.DEBUG)
             title = '.'.join(brekup)
-            print(f"title: {title}")
+            print(f"title: {title}",lvl=logging.DEBUG)
             if title in names:
                 other.append(f'dupe;{title}')
             else:
                 names.append(title)
             if extntion.upper() == 'PDF':
                 other.append(f'pdf')
-                print('PDF, Skip')
+                print('PDF, Skip',lvl=logging.WARN)
                 continue
             img = PIL.Image.open(f)
             size = img.size
             space = os.stat(f).st_size
             half = (round(size[0]/2),round(size[1]/2))
-            print("Original size: ",size)
-            print("Original space: ",space)
+            print("Original size: ",size,lvl=logging.DEBUG)
+            print("Original space: ",space,lvl=logging.DEBUG)
             if int(space) >= 300000: 
-                print('resize')
+                print('resize',lvl=logging.DEBUG)
                 img.thumbnail(half)
             else:
-                print('dont resize')
+                print('dont resize',lvl=logging.DEBUG)
             nsize = img.size
-            print("New size: ",nsize)
+            print("New size: ",nsize,lvl=logging.DEBUG)
             if extntion.upper() == 'PNG':
                 img.save(outpath+"/"+title+'.png')
                 nspace = os.stat(outpath+"/"+title+'.png')
             else:
                 img.save(outpath+"/"+title+'.jpg')
                 nspace = os.stat(outpath+"/"+title+'.jpg').st_size
-            print("New space: ",nspace)
+            print("New space: ",nspace,lvl=logging.DEBUG)
             now = time.perf_counter()
-            print(f"image {i}")
-            print(now-times[0])
-            print(f"+{now-times[len(times)-1]}")
+            print(f"image {i}",lvl=logging.DEBUG)
+            print(now-times[0],lvl=logging.DEBUG)
+            print(f"+{now-times[len(times)-1]}",lvl=logging.DEBUG)
             delay.append(now-times[len(times)-1])
             times.append(time.perf_counter())
         i+=1
@@ -362,8 +392,8 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     else:
         storefile = preferences["fileLocations"]["Storage"]
     data = photopackConvert(Zipfile,storefile,outfile)
-    print(data[4])
-    print(data[5])
+    print(data[4],lvl=logging.DEBUG)
+    print(data[5],lvl=logging.DEBUG)
     totalTimeVal.config(text=round(data[2],4))
     numFilesVal.config(text=data[1])
     endSizeVal.config(text=data[6])
@@ -377,7 +407,7 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
         err = True
     if any("dupe" in s for s in data[4]):
         dupes = [s for s in data[4] if "dupe" in s]
-        print(dupes)
+        print(dupes,lvl=logging.WARN)
         sting = "Files found with same name, only one photo kept"
         statStr += ', Duplicate files Found'
         if not statClr == 'red': statClr = 'orange'
