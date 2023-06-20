@@ -17,6 +17,7 @@ from tkinter import messagebox
 import webbrowser
 import json
 import default
+import threading
 
 
 version = 'v1.0.0'
@@ -426,10 +427,14 @@ def convertFiles(statusVal=statusVal,numFilesVal=numFilesVal,totalTimeVal=totalT
     setStatus(text=statStr,fg=statClr)
     # ConvertButton["state"] = 'normal'
 
+def convertThread():
+    T = threading.Thread(target=convertFiles)
+    T.start()
+
 # convert button
 ConvertButton = Frame(root)
 ConvertButton.grid(row=4, column=0, columnspan=2, pady=5, sticky='new')
-Button(ConvertButton, text='Convert', command=convertFiles, width=100, height=2, fg="green").pack(side=TOP, padx=5)
+Button(ConvertButton, text='Convert', command=convertThread, width=100, height=2, fg="green").pack(side=TOP, padx=5)
 # horizontal divider
 divide = ttk.Separator(root, orient='horizontal').grid(row=5, column=0, columnspan=3,pady=5,sticky='ew')
 divide = ttk.Separator(root, orient='horizontal').grid(row=7, column=0, columnspan=3,pady=5,sticky='ew')
